@@ -1,24 +1,51 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
 const app = express();
+const bodyParser = require("body-parser");
 
 // Basic Configuration
 const port = process.env.PORT || 3000;
 
+var shortUrls = [];
+let counter = -1;
+
 app.use(cors());
 
-app.use('/public', express.static(`${process.cwd()}/public`));
+app.use("/public", express.static(`${process.cwd()}/public`));
 
-app.get('/', function(req, res) {
-  res.sendFile(process.cwd() + '/views/index.html');
+app.get("/", function (req, res) {
+  res.sendFile(process.cwd() + "/views/index.html");
 });
 
-// Your first API endpoint
-app.get('/api/hello', function(req, res) {
-  res.json({ greeting: 'hello API' });
+// for parsing application/xwww-
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.post("/api/shorturl/new", (req, res) => {
+  if (req.body.url in shortUrls) {
+    result = {
+      original_url: req.body.url,
+      short_url: shortUrls.indexOf(req.body.url)
+    };
+    res.send(result);
+  } else {
+    counter = counter + 1;
+    shortUrls.push(req.body.url);
+    result = {
+      original_url: req.body.url,
+      short_url: shortUrls.indexOf(req.body.url)
+    };
+    res.send(result);
+  }
 });
 
-app.listen(port, function() {
+app.get("/api/shorturl/:id", (req, res) => {
+  console.log(shortUrls);
+  if (req.params.id <= counter) {
+    res.redirect(shortUrls[req.params.id]);
+  }
+});
+
+app.listen(port, function () {
   console.log(`Listening on port ${port}`);
 });
